@@ -7,7 +7,7 @@
 // Original located at https://github.com/kruug/Desktop-Weather-CSharp
 
 std::string URL_FIRST = "https://api.forecast.io/forecast/";
-std::string API_KEY = "06fab55021a0b1d1b47ee909fb8723f9/"; /* Always use the `/` as the last character */
+std::string API_KEY = "/"; /* Always use the `/` as the last character */
 std::string URL_LOCATION = "37.8267,-122.423";
 
 std::string URL = URL_FIRST + API_KEY + URL_LOCATION;
