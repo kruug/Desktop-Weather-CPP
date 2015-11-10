@@ -11,7 +11,8 @@
 #include <string>
 #include <sstream>
 #include <ctime>
-#include <math.h> 
+#include <math.h>
+#include <stdexcept>
 // weather_main.cpp
 // This is a C++ version of my Desktop Weather program.
 // Original located at https://github.com/kruug/Desktop-Weather-CSharp
@@ -28,41 +29,34 @@ string URL = URL_FIRST + API_KEY + URL_LOCATION;
 char buffer_zero[80];
 char buffer_one[80];
 char buffer_two[80];
-char buffer_three[80];
 
 int date_zero;
 int date_one;
 int date_two;
-int date_three;
 
 double temp_current;
 int temp_zero_high;
 int temp_one_high;
 int temp_two_high;
-int temp_three_high;
 
 int temp_zero_low;
 int temp_one_low;
 int temp_two_low;
-int temp_three_low;
 
 time_t rawtime_zero;
 time_t rawtime_one;
 time_t rawtime_two;
-time_t rawtime_three;
 
 string conditions_current;
 string conditions_zero;
 string conditions_one;
 string conditions_two;
-string conditions_three;
 
 string weather_data;
 
 struct tm * timeinfo_zero;
 struct tm * timeinfo_one;
 struct tm * timeinfo_two;
-struct tm * timeinfo_three;
 
 struct MemoryStruct {
   char *memory;
@@ -87,6 +81,28 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   mem->memory[mem->size] = 0;
  
   return realsize;
+}
+
+string split_condition(string condition, int line)
+{
+  try {
+    switch( line ) {
+      case 1:
+        return condition.substr(0, 18);
+        break;
+      case 2:
+        return condition.substr(18, 18);
+        break;
+      case 3:
+        return condition.substr(36, 18);
+        break;
+      default:
+        return "";
+        break;
+    }
+  } catch (exception& e) {
+    return "";
+  } 
 }
 
 int main(void)
@@ -118,7 +134,6 @@ int main(void)
 
   d.Parse(chunk.memory);
 
-
   if (Value* currently = GetValueByPointer(d, "/currently")) {
 //    rawtime = (*currently)["time"].GetInt();
     temp_current = (*currently)["temperature"].GetDouble();
@@ -132,14 +147,85 @@ int main(void)
     conditions_zero = (*day_zero)["summary"].GetString();
   }
 
-//  timeinfo = localtime (&rawtime);
+  if (Value* day_one = GetValueByPointer(d, "/daily/data/1")) {
+    rawtime_one = (*day_one)["time"].GetInt();
+    temp_one_high = round((*day_one)["temperatureMax"].GetDouble());
+    temp_one_low = round((*day_one)["temperatureMin"].GetDouble());
+    conditions_one = (*day_one)["summary"].GetString();
+   }
+
+  if (Value* day_two = GetValueByPointer(d, "/daily/data/2")) {
+    rawtime_two = (*day_two)["time"].GetInt();
+    temp_two_high = round((*day_two)["temperatureMax"].GetDouble());
+    temp_two_low = round((*day_two)["temperatureMin"].GetDouble());
+    conditions_two = (*day_two)["summary"].GetString();
+  }
+
   timeinfo_zero = localtime (&rawtime_zero);
+  strftime(buffer_zero, 80, "%m-%d", timeinfo_zero);
 
-  strftime(buffer_zero, 80, "%m/%d", timeinfo_zero);
+  timeinfo_one  = localtime (&rawtime_one);
+  strftime(buffer_one,  80, "%m-%d", timeinfo_one);
 
-//  cout << buffer << endl;
-  cout << setw(30) << left << temp_current << setw(30) << left << to_string(temp_zero_high) + "/" + to_string(temp_zero_low) << endl;
-  cout << setw(30) << left << conditions_current << setw(30) << left << conditions_zero << endl;
- 
+  timeinfo_two  = localtime (&rawtime_two);
+  strftime(buffer_two,  80, "%m-%d", timeinfo_two);
+
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "---------" << endl;
+  cout << "| " << setw(20) << left << "Currently";
+  cout << "| " << setw(20) << left << "Today";
+  cout << "| " << setw(20) << left << "Tomorrow";
+  cout << "| " << setw(20) << left << "Day After Tomorrow";
+  cout << "|"  << endl;
+
+  cout << "| " << setw(20) << left << temp_current;
+  cout << "| " << setw(20) << left << to_string(temp_zero_high) + "/" + to_string(temp_zero_low) + " F";
+  cout << "| " << setw(20) << left << to_string(temp_one_high)  + "/" + to_string(temp_one_low) + " F";
+  cout << "| " << setw(20) << left << to_string(temp_two_high)  + "/" + to_string(temp_two_low) + " F";
+  cout << "|"  << endl;
+
+  cout << "| " << setw(20) << left << split_condition(conditions_current, 1);
+  cout << "| " << setw(20) << left << split_condition(conditions_zero, 1);
+  cout << "| " << setw(20) << left << split_condition(conditions_one, 1);
+  cout << "| " << setw(20) << left << split_condition(conditions_two, 1);
+  cout << "|"  << endl;
+
+  // (18, 18)
+  cout << "| " << setw(20) << left << split_condition(conditions_current, 2);
+  cout << "| " << setw(20) << left << split_condition(conditions_zero, 2);
+  cout << "| " << setw(20) << left << split_condition(conditions_one, 2);
+  cout << "| " << setw(20) << left << split_condition(conditions_two, 2);
+  cout << "|"  << endl;
+
+  // (36, 18)
+  cout << "| " << setw(20) << left << split_condition(conditions_current, 3);
+  cout << "| " << setw(20) << left << split_condition(conditions_zero, 3);
+  cout << "| " << setw(20) << left << split_condition(conditions_one, 3);
+  cout << "| " << setw(20) << left << split_condition(conditions_two, 3);
+  cout << "|"  << endl;
+
+  cout << "| " << setw(20) << left << "";
+  cout << "| " << setw(20) << left << buffer_zero;
+  cout << "| " << setw(20) << left << buffer_one;
+  cout << "| " << setw(20) << left << buffer_two;
+  cout << "|"  << endl;
+  
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "----------";
+  cout << "---------" << endl;
+
   return 0;
 }
